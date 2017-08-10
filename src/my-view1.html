@@ -1,0 +1,127 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-item/paper-item-body.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="my-view1">
+  <template>
+    <style include="shared-styles">
+       :host {
+        display: block;
+
+        padding: 10px;
+      }
+
+      .flex-center-justified {
+        @apply --layout-horizontal;
+        @apply --layout-center-justified;
+        margin: auto;
+        border-radius: 5px;
+        padding: 16px;
+        max-width: 400px;
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 5px 6px 20px 0 rgba(0, 0, 0, 0.19);
+      }
+
+      .data {
+        -webkit-text-fill-color: #000;
+      }
+
+      .heady {
+        -webkit-text-fill-color: #635b5b;
+      }
+
+      .but {
+        @apply --layout-horizontal;
+        @apply --layout-center-justified;
+      }
+    </style>
+
+    <div class="flex-center-justified">
+      <div>
+        <paper-input id="moniker" label="Moniker"></paper-input>
+        <paper-item>
+          <paper-item-body two-line>
+            <div class="heady">Handle</div>
+            <div secondary class="data">{{info.handle}}</div>
+          </paper-item-body>
+        </paper-item>
+        <paper-item>
+          <paper-item-body two-line>
+            <div class="heady">Citizen Record</div>
+            <div secondary class="data">{{info.citizen_record}}</div>
+          </paper-item-body>
+        </paper-item>
+        <paper-item>
+          <paper-item-body two-line>
+            <div class="heady">Enlistment Date</div>
+            <div secondary class="data">{{info.enlisted}}</div>
+          </paper-item-body>
+        </paper-item>
+        <paper-item>
+          <paper-item-body two-line>
+            <div class="heady">Organisation</div>
+            <div secondary class="data">{{info.org}}</div>
+          </paper-item-body>
+        </paper-item>
+        <paper-item>
+          <paper-item-body two-line>
+            <div class="heady">Rank</div>
+            <div secondary class="data">{{info.sid}}</div>
+          </paper-item-body>
+        </paper-item>
+        <div class="but">
+          <paper-button raised on-click="getUserData">Search</paper-button>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    class MyView1 extends Polymer.Element {
+      static get is() { return 'my-view1'; }
+      static get properties() {
+        return {
+          info : {
+            type: Array
+          }
+        };
+      }
+
+
+      constructor() {
+        super();
+
+      }
+
+      getUserData() {
+        var name = this.$.moniker.value;
+        var Url = 'https://tools.isle-of-hope.de/vakss/api/v1/citizen/' + name;
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.onreadystatechange = function () {
+          if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+          {
+            var data = JSON.parse(xmlHttp.responseText);
+            this.set('info',data);
+            console.log(this.info);
+          }
+        }.bind(this)
+        xmlHttp.open("GET", Url, true); // true for asynchronous 
+        xmlHttp.send(null);
+      }
+    }
+    window.customElements.define(MyView1.is, MyView1);
+  </script>
+</dom-module>
