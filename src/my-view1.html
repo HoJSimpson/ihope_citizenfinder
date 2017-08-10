@@ -51,35 +51,35 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <div class="flex-center-justified">
       <div>
-        <paper-input id="moniker" label="Moniker"></paper-input>
+        <paper-input id="moniker" label="Moniker" on-keydown="checkForEnter"></paper-input>
         <paper-item>
           <paper-item-body two-line>
             <div class="heady">Handle</div>
-            <div secondary class="data">{{info.handle}}</div>
+            <div secondary class="data">{{citizen}}</div>
           </paper-item-body>
         </paper-item>
         <paper-item>
           <paper-item-body two-line>
             <div class="heady">Citizen Record</div>
-            <div secondary class="data">{{info.citizen_record}}</div>
+            <div secondary class="data">{{record}}</div>
           </paper-item-body>
         </paper-item>
         <paper-item>
           <paper-item-body two-line>
             <div class="heady">Enlistment Date</div>
-            <div secondary class="data">{{info.enlisted}}</div>
+            <div secondary class="data">{{date}}</div>
           </paper-item-body>
         </paper-item>
         <paper-item>
           <paper-item-body two-line>
             <div class="heady">Organisation</div>
-            <div secondary class="data">{{info.org}}</div>
+            <div secondary class="data">{{org}}</div>
           </paper-item-body>
         </paper-item>
         <paper-item>
           <paper-item-body two-line>
             <div class="heady">Rank</div>
-            <div secondary class="data">{{info.sid}}</div>
+            <div secondary class="data">{{rank}}</div>
           </paper-item-body>
         </paper-item>
         <div class="but">
@@ -94,9 +94,27 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       static get is() { return 'my-view1'; }
       static get properties() {
         return {
-          info : {
-            type: Array
+          citizen: {
+            type: String,
+            value: "Chris Roberts"
+          },
+          record: {
+            type: String,
+            value: "000000001"
+          },
+          date: {
+            type: String,
+            value: "20120822"
+          },
+          org: {
+            type: String,
+            value: "Cloud Imperium Games"
+          },
+          rank: {
+            type: String,
+            value: "Founder and CEO"
           }
+
         };
       }
 
@@ -105,17 +123,25 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         super();
 
       }
-
+      checkForEnter(e) {
+        // check if 'enter' was pressed
+        if (e.keyCode === 13) {
+            // enter pressed!
+            this.getUserData();
+        }
+    }
       getUserData() {
         var name = this.$.moniker.value;
         var Url = 'https://tools.isle-of-hope.de/vakss/api/v1/citizen/' + name;
         var xmlHttp = new XMLHttpRequest();
         xmlHttp.onreadystatechange = function () {
-          if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-          {
+          if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
             var data = JSON.parse(xmlHttp.responseText);
-            this.set('info',data);
-            console.log(this.info);
+            this.set('citizen', data.handle);
+            this.set('record', data.citizen_record);
+            this.set('date', data.enlisted);
+            this.set('org', data.org);
+            this.set('rank', data.sid);
           }
         }.bind(this)
         xmlHttp.open("GET", Url, true); // true for asynchronous 
