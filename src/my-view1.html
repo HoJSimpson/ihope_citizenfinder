@@ -14,7 +14,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../bower_components/paper-item/paper-item-body.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../bower_components/iron-icons/notification-icons.html">
 <link rel="import" href="shared-styles.html">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
 
 <dom-module id="my-view1">
   <template>
@@ -47,14 +52,34 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         @apply --layout-horizontal;
         @apply --layout-center-justified;
       }
+
+      .innerdiv {
+        @apply --layout-horizontal;
+        @apply --layout-center-justified;
+      }
+
+      .items {
+        margin: 3px;
+        max-width: 400px
+      }
+
+      .info {
+        float: right;
+        display: none;
+      }
+
+      .fapper {
+        height: 15px;
+        width: 15px;
+      }
     </style>
 
     <div class="flex-center-justified">
       <div>
-        <paper-input id="moniker" label="Moniker" on-keydown="checkForEnter"></paper-input>
+        <paper-input id="moniker" label="Handle" on-keydown="checkForEnter"></paper-input>
         <paper-item>
           <paper-item-body two-line>
-            <div class="heady">Handle</div>
+            <div class="heady">Moniker</div>
             <div secondary class="data">{{citizen}}</div>
           </paper-item-body>
         </paper-item>
@@ -70,6 +95,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             <div secondary class="data">{{date}}</div>
           </paper-item-body>
         </paper-item>
+        <div id="fappy" class="w3-container w3-center w3-animate-zoom info">
+          <paper-fab mini icon="notification:priority-high" title="info" class="fapper" on-click='toggleDialog'></paper-fab>
+        </div>
         <paper-item>
           <paper-item-body two-line>
             <div class="heady">Organisation</div>
@@ -85,8 +113,50 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <div class="but">
           <paper-button raised on-click="getUserData">Search</paper-button>
         </div>
+        <div class="w3-container">
+          <paper-dialog id="corpinfo" class="w3-animate-zoom">
+            <div class="innerdiv">
+              <div class="items">
+                <paper-item>
+                  <paper-item-body two-line>
+                    <div class="heady">Name</div>
+                    <div secondary class="data">{{corpinfo.name}}</div>
+                  </paper-item-body>
+                </paper-item>
+                <paper-item>
+                  <paper-item-body two-line>
+                    <div class="heady">Members</div>
+                    <div secondary class="data">{{corpinfo.members}}</div>
+                  </paper-item-body>
+                </paper-item>
+                <paper-item>
+                  <paper-item-body two-line>
+                    <div class="heady">Archetype</div>
+                    <div secondary class="data">{{corpinfo.archetype}}</div>
+                  </paper-item-body>
+                </paper-item>
+                <paper-item>
+                  <paper-item-body two-line on-click="toggleDialog">
+                    <div class="heady">Primary Activity</div>
+                    <div secondary class="data">{{corpinfo.primary_activity}}</div>
+                  </paper-item-body>
+                </paper-item>
+                <paper-item>
+                  <paper-item-body two-line>
+                    <div class="heady">Secondary Activity</div>
+                    <div secondary class="data">{{corpinfo.secondary_activity}}</div>
+                  </paper-item-body>
+                </paper-item>
+              </div>
+            </div>
+          </paper-dialog>
+          <paper-dialog id="warning" class="w3-animate-zoom">
+            <h1>Please enter valid handle!</h1>
+          </paper-dialog>
+        </div>
       </div>
     </div>
+
   </template>
 
   <script>
@@ -96,23 +166,23 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         return {
           citizen: {
             type: String,
-            value: "Chris Roberts"
           },
           record: {
             type: String,
-            value: "000000001"
           },
           date: {
             type: String,
-            value: "20120822"
           },
           org: {
             type: String,
-            value: "Cloud Imperium Games"
           },
           rank: {
             type: String,
-            value: "Founder and CEO"
+          },
+          corpinfo: Array,
+          clickable: {
+            type: Boolean,
+            value: false
           }
 
         };
@@ -121,18 +191,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       constructor() {
         super();
-
+      }
+      toggleDialog() {
+        this.$.corpinfo.toggle();
       }
       checkForEnter(e) {
         // check if 'enter' was pressed
         if (e.keyCode === 13) {
-            // enter pressed!
-            this.getUserData();
+          // enter pressed!
+          this.getUserData();
         }
-    }
+      }
       getUserData() {
         var name = this.$.moniker.value;
-        var Url = 'https://tools.isle-of-hope.de/vakss/api/v1/citizen/' + name;
+        var Url = 'https://tools.isle-of-hope.de/ct/api/v1/citizen/' + name;
         var xmlHttp = new XMLHttpRequest();
         xmlHttp.onreadystatechange = function () {
           if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
@@ -142,10 +214,46 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             this.set('date', data.enlisted);
             this.set('org', data.org);
             this.set('rank', data.sid);
+            var corp = data.sid;
+            var short = corp.substr(0, corp.indexOf(' ')); // "72"
+            console.log(short);
+            var Url = 'https://tools.isle-of-hope.de/ct/api/v1/org/' + short;
+            var xmlHttp2 = new XMLHttpRequest();
+            xmlHttp2.onreadystatechange = function () {
+              if (xmlHttp2.readyState == 4 && xmlHttp2.status == 200) {
+                var data = JSON.parse(xmlHttp2.responseText);
+                this.set('corpinfo', data);
+                this.$.fappy.style.display = 'block'
+              }
+              else if (xmlHttp2.status == 400 && xmlHttp2.status == 404) {
+                this.$.fappy.style.display = 'none'
+              }
+            }.bind(this)
+            xmlHttp2.open("GET", Url, true); // true for asynchronous 
+            xmlHttp2.send(null);
+          }
+          else if (xmlHttp.status == 400) {
+            this.$.warning.toggle();
+            this.$.fappy.style.display = 'none'
           }
         }.bind(this)
         xmlHttp.open("GET", Url, true); // true for asynchronous 
         xmlHttp.send(null);
+
+      }
+      preFill() {
+        var Url = 'https://tools.isle-of-hope.de/ct/api/v1/citizen/random_famous';
+        var xmlHttp2 = new XMLHttpRequest();
+        xmlHttp2.onreadystatechange = function () {
+          if (xmlHttp2.readyState == 4 && xmlHttp2.status == 200) {
+            var data = JSON.parse(xmlHttp2.responseText);
+            this.set('citizen', data.handle);
+            this.set('record', data.citizen_record);
+            this.set('date', data.enlisted);
+            this.set('org', data.org);
+            this.set('rank', data.sid);
+          }
+        }.bind(this)
       }
     }
     window.customElements.define(MyView1.is, MyView1);
