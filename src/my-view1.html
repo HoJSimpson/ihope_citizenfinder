@@ -16,7 +16,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../bower_components/paper-fab/paper-fab.html">
-<link rel="import" href="../bower_components/iron-icons/notification-icons.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/vaadin-icons/vaadin-icons.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="shared-styles.html">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 
@@ -60,7 +62,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       .items {
         margin: 3px;
-        max-width: 400px
+        max-width: 300px
       }
 
       .info {
@@ -69,8 +71,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
 
       .fapper {
-        height: 15px;
-        width: 15px;
+        border-radius: 50%;
+        background-color:  #180367;
+        @apply --paper-icon-button-ink-color;
+        color: #fff;
       }
     </style>
 
@@ -96,7 +100,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           </paper-item-body>
         </paper-item>
         <div id="fappy" class="w3-container w3-center w3-animate-zoom info">
-          <paper-fab mini icon="notification:priority-high" title="info" class="fapper" on-click='toggleDialog'></paper-fab>
+          <paper-icon-button icon="icons:account-balance" title="info" class="fapper" on-click='toggleDialog'></paper-icon-button>
         </div>
         <paper-item>
           <paper-item-body two-line>
@@ -139,12 +143,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                   <paper-item-body two-line on-click="toggleDialog">
                     <div class="heady">Primary Activity</div>
                     <div secondary class="data">{{corpinfo.primary_activity}}</div>
-                  </paper-item-body>
-                </paper-item>
-                <paper-item>
-                  <paper-item-body two-line>
-                    <div class="heady">Secondary Activity</div>
-                    <div secondary class="data">{{corpinfo.secondary_activity}}</div>
                   </paper-item-body>
                 </paper-item>
               </div>
@@ -191,6 +189,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       constructor() {
         super();
+        this.preFill();
       }
       toggleDialog() {
         this.$.corpinfo.toggle();
@@ -209,7 +208,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         xmlHttp.onreadystatechange = function () {
           if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
             var data = JSON.parse(xmlHttp.responseText);
-            this.set('citizen', data.handle);
+            this.set('citizen', data.moniker);
             this.set('record', data.citizen_record);
             this.set('date', data.enlisted);
             this.set('org', data.org);
@@ -225,7 +224,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 this.set('corpinfo', data);
                 this.$.fappy.style.display = 'block'
               }
-              else if (xmlHttp2.status == 400 && xmlHttp2.status == 404) {
+              else if (xmlHttp2.status == 400 || xmlHttp2.status == 404) {
                 this.$.fappy.style.display = 'none'
               }
             }.bind(this)
@@ -243,17 +242,39 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
       preFill() {
         var Url = 'https://tools.isle-of-hope.de/ct/api/v1/citizen/random_famous';
-        var xmlHttp2 = new XMLHttpRequest();
-        xmlHttp2.onreadystatechange = function () {
-          if (xmlHttp2.readyState == 4 && xmlHttp2.status == 200) {
-            var data = JSON.parse(xmlHttp2.responseText);
-            this.set('citizen', data.handle);
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.onreadystatechange = function () {
+          if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+            var data = JSON.parse(xmlHttp.responseText);
+            this.set('citizen', data.moniker);
             this.set('record', data.citizen_record);
             this.set('date', data.enlisted);
             this.set('org', data.org);
             this.set('rank', data.sid);
+            var corp = data.sid;
+            var short = corp.substr(0, corp.indexOf(' '));
+            var Url = 'https://tools.isle-of-hope.de/ct/api/v1/org/' + short;
+            var xmlHttp2 = new XMLHttpRequest();
+            xmlHttp2.onreadystatechange = function () {
+              if (xmlHttp2.readyState == 4 && xmlHttp2.status == 200) {
+                var data = JSON.parse(xmlHttp2.responseText);
+                this.set('corpinfo', data);
+                this.$.fappy.style.display = 'block'
+              }
+              else if (xmlHttp2.status == 400 || xmlHttp2.status == 404) {
+                this.$.fappy.style.display = 'none'
+              }
+            }.bind(this)
+            xmlHttp2.open("GET", Url, true); // true for asynchronous 
+            xmlHttp2.send(null);
+          }
+          else if (xmlHttp.status == 400) {
+            this.$.warning.toggle();
+            this.$.fappy.style.display = 'none'
           }
         }.bind(this)
+        xmlHttp.open("GET", Url, true); // true for asynchronous 
+        xmlHttp.send(null);
       }
     }
     window.customElements.define(MyView1.is, MyView1);

@@ -21,7 +21,8 @@
     "paper-dialog": "PolymerElements/paper-dialog#^2.0.0",
     "paper-fab": "PolymerElements/paper-fab#^2.0.0",
     "iron-file-icons": "Collaborne/iron-file-icons#^2.0.2",
-    "iron-icons": "PolymerElements/iron-icons#^2.0.1"
+    "iron-icons": "PolymerElements/iron-icons#^2.0.1",
+    "vaadin-icons": "^4.1.0"
   },
   "resolutions": {
     "polymer": "^2.0.0"
